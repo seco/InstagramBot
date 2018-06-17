@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Tag;
 use App\Form\TagType;
+use App\Manager\Impl\TagManager;
 use App\Repository\TagRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -12,6 +13,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
+ * Class TagController
+ * @package App\Controller
+ * @author Pierre-Louis Legrand <hello@pierrelouislegrand.fr>
+ *
  * @Route("/tag")
  */
 class TagController extends Controller
@@ -32,13 +37,14 @@ class TagController extends Controller
      * @Route("/new", name="tag_new", methods="GET|POST")
      * @param Request $request
      * @param LoggerInterface $logger
+     * @param TagManager $manager
      * @return Response
      */
-    public function new(Request $request, LoggerInterface $logger): Response
+    public function new(Request $request, LoggerInterface $logger, TagManager $manager): Response
     {
         $logger->debug('Request for a new tag entity.', array('method' => 'new', 'class' => self::class));
+        $tag = $manager->createEntity();
 
-        $tag = new Tag();
         $form = $this->createForm(TagType::class, $tag);
         $form->handleRequest($request);
 
@@ -47,11 +53,7 @@ class TagController extends Controller
                 'Form is submitted and valid.',
                 array('tag' => $tag->getLabel(), 'method' => 'new', 'class' => self::class)
             );
-
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($tag);
-            $em->flush();
-
+            $manager->saveEntity($tag);
             return $this->redirectToRoute('tag_index');
         }
 
@@ -74,7 +76,6 @@ class TagController extends Controller
             'Showing tag from given id.',
             array('tag' => $tag->getLabel(), 'method' => 'show', 'class' => self::class)
         );
-
         return $this->render('tag/show.html.twig', ['tag' => $tag]);
     }
 
@@ -83,34 +84,31 @@ class TagController extends Controller
      * @param Request $request
      * @param Tag $tag
      * @param LoggerInterface $logger
+     * @param TagManager $manager
      * @return Response
      */
-    public function edit(Request $request, Tag $tag, LoggerInterface $logger): Response
+    public function edit(Request $request, Tag $tag, LoggerInterface $logger, TagManager $manager): Response
     {
+        $form = $this->createForm(TagType::class, $tag);
+        $form->handleRequest($request);
         $logger->debug(
             'Editing tag from given id.',
             array('tag' => $tag->getLabel(), 'method' => 'edit', 'class' => self::class)
         );
-
-        $form = $this->createForm(TagType::class, $tag);
-        $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $logger->debug(
                 'Form is submitted and valid.',
                 array('tag' => $tag->getLabel(), 'method' => 'edit', 'class' => self::class)
             );
-
-            $this->getDoctrine()->getManager()->flush();
-
-            return $this->redirectToRoute('tag_edit', ['id' => $tag->getId()]);
+            $manager->saveEntity($tag);
+            return $this->redirectToRoute('tag_index');
         }
 
         $logger->debug(
             'Form is not submitted. Rendering template.',
             array('tag' => $tag->getLabel(), 'method' => 'edit', 'class' => self::class)
         );
-
         return $this->render('tag/edit.html.twig', [
             'tag' => $tag,
             'form' => $form->createView(),
@@ -122,9 +120,10 @@ class TagController extends Controller
      * @param Request $request
      * @param Tag $tag
      * @param LoggerInterface $logger
+     * @param TagManager $manager
      * @return Response
      */
-    public function delete(Request $request, Tag $tag, LoggerInterface $logger): Response
+    public function delete(Request $request, Tag $tag, LoggerInterface $logger, TagManager $manager): Response
     {
         $logger->debug(
             'Deleting tag from given id.',
@@ -133,19 +132,11 @@ class TagController extends Controller
 
         if ($this->isCsrfTokenValid('delete'.$tag->getId(), $request->request->get('_token'))) {
             $logger->debug(
-                'Form is submitted and valid.',
+                'Csrf token is valid.',
                 array('tag' => $tag->getLabel(), 'method' => 'delete', 'class' => self::class)
             );
-
-            $em = $this->getDoctrine()->getManager();
-            $em->remove($tag);
-            $em->flush();
+            $manager->removeEntity($tag);
         }
-
-        $logger->debug(
-            'Form is not submitted, rendering template.',
-            array('tag' => $tag->getLabel(), 'method' => 'delete', 'class' => self::class)
-        );
 
         return $this->redirectToRoute('tag_index');
     }

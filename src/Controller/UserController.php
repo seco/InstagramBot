@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\UserType;
+use App\Manager\Impl\UserManager;
 use App\Repository\UserRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -12,6 +13,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
+ * Class UserController
+ * @package App\Controller
+ * @author Pierre-Louis Legrand <hello@pierrelouislegrand.fr>
+ *
  * @Route("/user")
  */
 class UserController extends Controller
@@ -29,40 +34,6 @@ class UserController extends Controller
     }
 
     /**
-     * @Route("/new", name="user_new", methods="GET|POST")
-     * @param Request $request
-     * @param LoggerInterface $logger
-     * @return Response
-     */
-    public function new(Request $request, LoggerInterface $logger): Response
-    {
-        $logger->debug('Request for a new user entity.', array('method' => 'new', 'class' => self::class));
-
-        $user = new User();
-        $form = $this->createForm(UserType::class, $user);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $logger->debug(
-                'Form is submitted and valid.',
-                array('instagram id' => $user->getInstagramId(), 'method' => 'new', 'class' => self::class)
-            );
-
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($user);
-            $em->flush();
-
-            return $this->redirectToRoute('user_index');
-        }
-
-        $logger->debug('Form is not submitted. Rendering template.', array('method' => 'new', 'class' => self::class));
-        return $this->render('user/new.html.twig', [
-            'user' => $user,
-            'form' => $form->createView(),
-        ]);
-    }
-
-    /**
      * @Route("/{id}", name="user_show", methods="GET")
      * @param User $user
      * @param LoggerInterface $logger
@@ -74,46 +45,23 @@ class UserController extends Controller
             'Showing user from given id.',
             array('instagram id' => $user->getInstagramId(), 'method' => 'show', 'class' => self::class)
         );
-
         return $this->render('user/show.html.twig', ['user' => $user]);
     }
 
     /**
      * @Route("/{id}/edit", name="user_edit", methods="GET|POST")
-     * @param Request $request
      * @param User $user
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function edit(Request $request, User $user, LoggerInterface $logger): Response
+    public function edit(User $user, LoggerInterface $logger): Response
     {
         $logger->debug(
             'Editing user from given id.',
             array('instagram id' => $user->getInstagramId(), 'method' => 'edit', 'class' => self::class)
         );
-
-        $form = $this->createForm(UserType::class, $user);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $logger->debug(
-                'Form is submitted and valid.',
-                array('instagram id' => $user->getInstagramId(), 'method' => 'edit', 'class' => self::class)
-            );
-
-            $this->getDoctrine()->getManager()->flush();
-
-            return $this->redirectToRoute('user_edit', ['id' => $user->getId()]);
-        }
-
-        $logger->debug(
-            'Form is not submitted. Rendering template.',
-            array('instagram id' => $user->getInstagramId(), 'method' => 'edit', 'class' => self::class)
-        );
-
         return $this->render('user/edit.html.twig', [
             'user' => $user,
-            'form' => $form->createView(),
         ]);
     }
 
@@ -122,9 +70,10 @@ class UserController extends Controller
      * @param Request $request
      * @param User $user
      * @param LoggerInterface $logger
+     * @param UserManager $manager
      * @return Response
      */
-    public function delete(Request $request, User $user, LoggerInterface $logger): Response
+    public function delete(Request $request, User $user, LoggerInterface $logger, UserManager $manager): Response
     {
         $logger->debug(
             'Deleting user from given id.',
@@ -133,19 +82,11 @@ class UserController extends Controller
 
         if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
             $logger->debug(
-                'Form is submitted and valid.',
+                'Csrf token is valid.',
                 array('instagram id' => $user->getInstagramId(), 'method' => 'delete', 'class' => self::class)
             );
-
-            $em = $this->getDoctrine()->getManager();
-            $em->remove($user);
-            $em->flush();
+            $manager->removeEntity($user);
         }
-
-        $logger->debug(
-            'Form is not submitted, rendering template.',
-            array('instagram id' => $user->getInstagramId(), 'method' => 'delete', 'class' => self::class)
-        );
 
         return $this->redirectToRoute('user_index');
     }
