@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Form\UserType;
 use App\Manager\Impl\UserManager;
 use App\Repository\UserRepository;
 use Psr\Log\LoggerInterface;
@@ -43,7 +42,7 @@ class UserController extends Controller
     {
         $logger->debug(
             'Showing user from given id.',
-            array('instagram id' => $user->getInstagramId(), 'method' => 'show', 'class' => self::class)
+            array('user' => $user->__toString(), 'method' => 'show', 'class' => self::class)
         );
         return $this->render('user/show.html.twig', ['user' => $user]);
     }
@@ -58,7 +57,7 @@ class UserController extends Controller
     {
         $logger->debug(
             'Editing user from given id.',
-            array('instagram id' => $user->getInstagramId(), 'method' => 'edit', 'class' => self::class)
+            array('user' => $user->__toString(), 'method' => 'edit', 'class' => self::class)
         );
         return $this->render('user/edit.html.twig', [
             'user' => $user,
@@ -77,13 +76,13 @@ class UserController extends Controller
     {
         $logger->debug(
             'Deleting user from given id.',
-            array('instagram id' => $user->getInstagramId(), 'method' => 'delete', 'class' => self::class)
+            array('user' => $user->__toString(), 'method' => 'delete', 'class' => self::class)
         );
 
         if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
             $logger->debug(
                 'Csrf token is valid.',
-                array('instagram id' => $user->getInstagramId(), 'method' => 'delete', 'class' => self::class)
+                array('user' => $user->__toString(), 'method' => 'delete', 'class' => self::class)
             );
             $manager->removeEntity($user);
         }

@@ -42,8 +42,9 @@ class TagController extends Controller
      */
     public function new(Request $request, LoggerInterface $logger, TagManager $manager): Response
     {
-        $logger->debug('Request for a new tag entity.', array('method' => 'new', 'class' => self::class));
+        /** @var Tag $tag */
         $tag = $manager->createEntity();
+        $logger->debug('Request for a new tag entity.', array('method' => 'new', 'class' => self::class));
 
         $form = $this->createForm(TagType::class, $tag);
         $form->handleRequest($request);
@@ -51,7 +52,7 @@ class TagController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
             $logger->debug(
                 'Form is submitted and valid.',
-                array('tag' => $tag->getLabel(), 'method' => 'new', 'class' => self::class)
+                array('tag' => $tag->__toString(), 'method' => 'new', 'class' => self::class)
             );
             $manager->saveEntity($tag);
             return $this->redirectToRoute('tag_index');
@@ -74,7 +75,7 @@ class TagController extends Controller
     {
         $logger->debug(
             'Showing tag from given id.',
-            array('tag' => $tag->getLabel(), 'method' => 'show', 'class' => self::class)
+            array('tag' => $tag->__toString(), 'method' => 'show', 'class' => self::class)
         );
         return $this->render('tag/show.html.twig', ['tag' => $tag]);
     }
@@ -93,13 +94,13 @@ class TagController extends Controller
         $form->handleRequest($request);
         $logger->debug(
             'Editing tag from given id.',
-            array('tag' => $tag->getLabel(), 'method' => 'edit', 'class' => self::class)
+            array('tag' => $tag->__toString(), 'method' => 'edit', 'class' => self::class)
         );
 
         if ($form->isSubmitted() && $form->isValid()) {
             $logger->debug(
                 'Form is submitted and valid.',
-                array('tag' => $tag->getLabel(), 'method' => 'edit', 'class' => self::class)
+                array('tag' => $tag->__toString(), 'method' => 'edit', 'class' => self::class)
             );
             $manager->saveEntity($tag);
             return $this->redirectToRoute('tag_index');
@@ -107,7 +108,7 @@ class TagController extends Controller
 
         $logger->debug(
             'Form is not submitted. Rendering template.',
-            array('tag' => $tag->getLabel(), 'method' => 'edit', 'class' => self::class)
+            array('tag' => $tag->__toString(), 'method' => 'edit', 'class' => self::class)
         );
         return $this->render('tag/edit.html.twig', [
             'tag' => $tag,
@@ -127,13 +128,13 @@ class TagController extends Controller
     {
         $logger->debug(
             'Deleting tag from given id.',
-            array('tag' => $tag->getLabel(), 'method' => 'delete', 'class' => self::class)
+            array('tag' => $tag->__toString(), 'method' => 'delete', 'class' => self::class)
         );
 
         if ($this->isCsrfTokenValid('delete'.$tag->getId(), $request->request->get('_token'))) {
             $logger->debug(
                 'Csrf token is valid.',
-                array('tag' => $tag->getLabel(), 'method' => 'delete', 'class' => self::class)
+                array('tag' => $tag->__toString(), 'method' => 'delete', 'class' => self::class)
             );
             $manager->removeEntity($tag);
         }

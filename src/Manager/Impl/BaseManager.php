@@ -12,7 +12,6 @@ namespace App\Manager\Impl;
 use App\Manager\ManageableEntity;
 use App\Manager\ManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\ORMException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -86,13 +85,9 @@ abstract class BaseManager implements ManagerInterface
         if (!is_a($entity, $this->entityClass))
             return $this->onWrongEntityType($entity);
 
-        try {
-            if (!$this->entityManager->contains($entity)) $this->entityManager->persist($entity);
-            $this->entityManager->flush();
-            return true;
-        } catch (ORMException $e) {
-            return false;
-        }
+        if (!$this->entityManager->contains($entity)) $this->entityManager->persist($entity);
+        $this->entityManager->flush();
+        return true;
     }
 
     /**
@@ -108,16 +103,13 @@ abstract class BaseManager implements ManagerInterface
         if (!is_a($entity, $this->entityClass))
             return $this->onWrongEntityType($entity);
 
-        try {
-            $this->entityManager->remove($entity);
-            $this->entityManager->flush();
-            return true;
-        } catch (ORMException $e) {
-            return false;
-        }
+        $this->entityManager->remove($entity);
+        $this->entityManager->flush();
+        return true;
     }
 
     /**
+     * @param object $entity
      * @return bool
      */
     private function onWrongEntityType(object $entity): bool
