@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b459c8fdfb3378c6048e1e137821a4ef",
+    "content-hash": "3ae639302beac52aca0fbf7bd74b8cc3",
     "packages": [
         {
             "name": "cosenary/instagram",
